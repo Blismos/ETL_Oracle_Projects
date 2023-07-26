@@ -1,0 +1,267 @@
+CREATE TABLE STG_CUSTOMER(
+	CUST_ID number PRIMARY KEY,
+	ACC_HLDR_TYP varchar2(50) NOT NULL,
+	LST_NM varchar2(50) NULL,
+	FIRST_NM varchar2(50) NOT NULL,
+	ENTITY_NM varchar2(50) NULL,
+	ADDRESS varchar2(50) NOT NULL,
+	CITY varchar2(50) NOT NULL,
+	PIN_CD varchar2(50) NOT NULL);
+
+
+CREATE TABLE DWH_CUSTOMER(
+	CUST_ID number PRIMARY KEY,
+	ACC_HLDR_TYP varchar2(50) NOT NULL,
+	NAME varchar2(50) NOT NULL,
+	ENTITY_NM varchar2(50) NULL,
+	ADDRESS varchar2(50) NOT NULL,
+	CITY varchar2(50) NOT NULL,
+	PIN_CD varchar2(50) NOT NULL);
+
+
+
+
+
+
+---table-level comparisons
+
+SELECT * FROM STG_CUSTOMER;
+
+SELECT * FROM DWH_CUSTOMER;
+
+--validate column_name,data_type,data_length(source table)
+
+SELECT column_name, data_type, data_length
+FROM user_tab_columns
+WHERE table_name = 'STG_CUSTOMER';
+
+--validate column_name,data_type,data_length(target table)
+
+SELECT column_name, data_type, data_length
+FROM user_tab_columns
+WHERE table_name = 'DWH_CUSTOMER';
+
+---source-target(A-B)
+
+SELECT column_name, data_type, data_length
+FROM user_tab_columns
+WHERE table_name = 'STG_CUSTOMER'
+MINUS
+SELECT column_name, data_type, data_length
+FROM user_tab_columns
+WHERE table_name = 'DWH_CUSTOMER';
+
+---source-target(B-A)
+
+SELECT column_name, data_type, data_length
+FROM user_tab_columns
+WHERE table_name = 'DWH_CUSTOMER'
+MINUS
+SELECT column_name, data_type, data_length
+FROM user_tab_columns
+WHERE table_name = 'STG_CUSTOMER';
+
+
+-------------------------------------------------------
+
+
+-- validate constraints (source table)
+
+SELECT B.COLUMN_NAME,A.CONSTRAINT_TYPE FROM USER_CONSTRAINTS A, USER_CONS_COLUMNS B
+WHERE A.TABLE_NAME = B.TABLE_NAME AND B.TABLE_NAME =  'STG_CUSTOMER' AND A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+
+
+-- validate constraints (Target table)
+
+SELECT B.COLUMN_NAME,A.CONSTRAINT_TYPE FROM USER_CONSTRAINTS A, USER_CONS_COLUMNS B
+WHERE A.TABLE_NAME = B.TABLE_NAME AND B.TABLE_NAME =  'DWH_CUSTOMER' AND A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+
+
+-- validate constraints (Source-Target(A-B))
+
+SELECT B.COLUMN_NAME,A.CONSTRAINT_TYPE FROM USER_CONSTRAINTS A, USER_CONS_COLUMNS B
+WHERE A.TABLE_NAME = B.TABLE_NAME AND B.TABLE_NAME =  'STG_CUSTOMER' AND A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+MINUS
+SELECT B.COLUMN_NAME,A.CONSTRAINT_TYPE FROM USER_CONSTRAINTS A, USER_CONS_COLUMNS B
+WHERE A.TABLE_NAME = B.TABLE_NAME AND B.TABLE_NAME =  'DWH_CUSTOMER' AND A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+
+
+-- validate constraints (Source-Target(B-A))
+
+SELECT B.COLUMN_NAME,A.CONSTRAINT_TYPE FROM USER_CONSTRAINTS A, USER_CONS_COLUMNS B
+WHERE A.TABLE_NAME = B.TABLE_NAME AND B.TABLE_NAME =  'DWH_CUSTOMER' AND A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+MINUS
+SELECT B.COLUMN_NAME,A.CONSTRAINT_TYPE FROM USER_CONSTRAINTS A, USER_CONS_COLUMNS B
+WHERE A.TABLE_NAME = B.TABLE_NAME AND B.TABLE_NAME =  'STG_CUSTOMER' AND A.CONSTRAINT_NAME = B.CONSTRAINT_NAME
+
+
+-----------------------------------------------------------
+--Row count comparisons
+-----------------------------------------------------------
+--source
+SELECT COUNT(*) FROM STG_CUSTOMER;
+
+---target
+SELECT COUNT(*) FROM DWH_CUSTOMER;
+
+
+
+-------------------------------------------------------------
+--Duplicate checck
+-------------------------------------------------------------
+select CUST_ID from STG_CUSTOMER 
+group by CUST_ID
+having count(*)>1
+
+select CUST_ID from DWH_CUSTOMER 
+group by CUST_ID
+having count(*)>1
+
+
+
+
+-----------------------------------------------------------
+--Column-Level Comparison (for Non transformation columns) (1-1 mapping)
+------------------------------------------------------------
+
+--Source-Target(A-B)
+
+SELECT CUST_ID,ENTITY_NM,CITY,ADDRESS 
+FROM STG_CUSTOMER
+MINUS
+SELECT CUST_ID,ENTITY_NM,CITY,ADDRESS 
+FROM DWH_CUSTOMER;
+
+
+--Target-Source(B-A)
+
+SELECT CUST_ID,ENTITY_NM,CITY,ADDRESS 
+FROM DWH_CUSTOMER
+MINUS
+SELECT CUST_ID,ENTITY_NM,CITY,ADDRESS 
+FROM STG_CUSTOMER
+
+
+
+---validate Transformations
+
+--Both together
+---- ** validations on ACC_HLDR_TYP column (FOR both case I=Individual & C - Entity Transformation together)
+
+--A-B(source-Target)
+
+SELECT CUST_ID, 
+case ACC_HLDR_TYP
+when 'I' then 'Individual'
+when 'C' then 'Entity'-
+end as Expected_ACC_HLDR_TYP 
+FROM STG_CUSTOMER
+MINUS
+SELECT CUST_ID, ACC_HLDR_TYP 
+FROM DWH_CUSTOMER;
+
+
+---Target-Source(B-A)
+
+SELECT CUST_ID, ACC_HLDR_TYP 
+FROM DWH_CUSTOMER
+MINUS
+SELECT CUST_ID, 
+case ACC_HLDR_TYP
+when 'I' then 'Individual'
+when 'C' then 'Entity'
+end as Expected_ACC_HLDR_TYP 
+FROM STG_CUSTOMER
+
+
+--- query to compare both source & Target together (method 1) ---(actual & expected result)
+
+
+SELECT a.CUST_ID,a.ACC_HLDR_TYP AS STG_ACC_HLDR_TYP,
+       CASE a.ACC_HLDR_TYP
+           WHEN 'I' THEN 'Individual'
+           WHEN 'C' THEN 'Entity'
+       END AS "Expected result",
+       b.ACC_HLDR_TYP AS DWH_ACC_HLDR_TYP
+FROM STG_CUSTOMER a INNER JOIN DWH_CUSTOMER b 
+ON a.CUST_ID = b.CUST_ID
+MINUS
+SELECT a.CUST_ID,a.ACC_HLDR_TYP,b.ACC_HLDR_TYP,b.ACC_HLDR_TYP 
+FROM STG_CUSTOMER a INNER JOIN DWH_CUSTOMER b 
+ON a.CUST_ID = b.CUST_ID;
+
+
+
+
+
+-------------------------------
+
+---Source-Target(A-B) (concat of first_name,last_name)
+
+SELECT CUST_ID, trim(FIRST_NM)||' '||trim(LST_NM) AS Expected 
+FROM STG_CUSTOMER
+MINUS
+SELECT CUST_ID, NAME 
+FROM DWH_CUSTOMER
+
+
+
+---------Target-Source(B-A)
+
+SELECT CUST_ID, NAME 
+FROM DWH_CUSTOMER
+MINUS
+SELECT CUST_ID, trim(FIRST_NM)||' '||trim(LST_NM) AS Expected 
+FROM STG_CUSTOMER
+
+
+
+--- query to compare both source & Target together (method 1 ---(actual & expected result)
+
+SELECT a.CUST_ID, a.FIRST_NM, a.LST_NM, TRIM(a.FIRST_NM) || ' ' || TRIM(a.LST_NM) AS EXPECTED_RESULT, b.NAME AS DWH_NAME
+FROM STG_CUSTOMER a 
+INNER JOIN DWH_CUSTOMER b ON a.CUST_ID = b.CUST_ID
+MINUS
+SELECT b.CUST_ID, a.FIRST_NM, a.LST_NM, b.NAME, b.NAME
+FROM STG_CUSTOMER a
+INNER JOIN DWH_CUSTOMER b ON a.CUST_ID = b.CUST_ID;
+
+
+
+-----------------------------------------------------------------------
+
+---Source-Target(A-B) (trim spaces for pincode column)
+
+select CUST_ID, replace(trim(PIN_CD),' ','') AS Expected_PIN_CD 
+FROM STG_CUSTOMER
+MINUS
+select CUST_ID, PIN_CD 
+FROM DWH_CUSTOMER
+
+
+---------Target-Source(B-A)
+
+select CUST_ID, PIN_CD 
+FROM DWH_CUSTOMER
+MINUS
+select CUST_ID, replace(trim(PIN_CD),' ','') AS Expected_PIN_CD 
+FROM STG_CUSTOMER
+
+
+--- query to compare both source & Target together (method 1 ---(actual & expected result)
+
+
+select a.CUST_ID, a.PIN_CD AS STG_PIN_CD, replace(trim(a.PIN_CD),' ','') as EXPECTED_RESULT ,b.PIN_CD  AS DWH_PIN_CD 
+FROM STG_CUSTOMER a 
+INNER JOIN DWH_CUSTOMER b 
+ON a.CUST_ID = b.CUST_ID
+MINUS
+select b.CUST_ID, a.PIN_CD AS STG_PIN_CD, b.PIN_CD AS DWH_PIN_CD ,b.PIN_CD 
+FROM STG_CUSTOMER a 
+INNER JOIN DWH_CUSTOMER b
+ ON a.CUST_ID = b.CUST_ID
+
+
+
+-
+

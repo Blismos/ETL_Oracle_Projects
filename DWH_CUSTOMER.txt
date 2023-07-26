@@ -1,0 +1,22 @@
+CUST_ID,ACC_HLDR_TYP,NAME,ENTITY_NM,ADDRESS,CITY,PIN_CD
+12727,Entity,Hardik Patel,5 Star Hospitality Services Limited,Perambur,CHENNAI,600011
+21367,Entity,Rohit Singh,ABC Solutions Limited,Adyar,CHENNAI,600020
+24365,Individual,Zyed Khan,,Koyambedu,CHENNAI,600 107
+34472,Individual,Chaurasia Akshay,,Whitefield,BANGALORE,560066
+37592,Individual,Karan ,,Bomannahalli,BANGALORE,560068
+39783,Individual,Vikas Anthony,,Sarjapura,BANGALORE,562 125
+45243,C,Praveen Sardar,A1 Real Estate Pvt Ltd,Bandra West,MUMBAI,400050
+45272,Individual,Kirtan Srinivas,,Andheri,MUMBAI,400053
+54527,Individual,Vinod Kumar,,Alipore,KOLKATA,700027
+54708,Individual,Pradeep Reddy,,Anna Nagar,CHENNAI,600040
+58248,Individual,Sunil Shetty,,Begumpet,HYDERABAD,500016
+65524,Individual,Sumit Raghav,,Jhowtala,KOLKATA,700 017
+67782,I,Hariprasad Sharma,,Borivali,MUMBAI,400090
+72472,Entity,Venkat Naidu,Space Solutions Limited,Dadar,MUMBAI,400014
+72648,Individual,Thomas Joseph,,Saidapet,CHENNAI,600 015
+76568,Entity,Prakash Gowda,A to Z Private Limited,Electronics City,BANGALORE,560 100
+82735,Individual,Rao Prashanth,,Jadavgarh,KOLKATA,700078
+85482,Individual,Akbar Sharif,,Cyberabad,HYDERABAD,500081
+86927,Entity,Guruprasad Swamy,Cab Services Limited,Cherlapalli,HYDERABAD,501301
+95836,Entity,Harish Bhat,Packers and Movers Limited,Daulatpur,KOLKATA,700141
+98647,Entity,Kishan Kharade,Interior Solutions Limited,Madhapur,HYDERABAD,500081
